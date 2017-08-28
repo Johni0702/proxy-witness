@@ -1,0 +1,3 @@
+apply plugin: 'java'
+
+jar.manifest.attributes 'Main-Class': 'de.johni0702.proxywitness.Proxy'
