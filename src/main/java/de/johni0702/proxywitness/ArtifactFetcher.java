@@ -78,7 +78,7 @@ public class ArtifactFetcher {
                     }
                     byte[] bytes = buffer.toByteArray();
                     String actualHash = Hash.sha256(bytes);
-                    if (!actualHash.equals(expectedHash)) {
+                    if (!"*".equals(expectedHash) && !actualHash.equals(expectedHash)) {
                         if (expectedHash != null) {
                             System.err.println("Received unexpected hash for: " + uriString);
                             System.err.println("Expected: " + expectedHash);
