@@ -87,6 +87,9 @@ public class ArtifactFetcher {
                             return null;
                         } else if (!uriString.endsWith(".sha1")) {
                             String path = url.getPath();
+                            if (path.startsWith("/maven2")) { // Remove common prefix
+                                path = path.substring("/maven2".length());
+                            }
                             if (path.startsWith("/maven")) { // Remove common prefix
                                 path = path.substring("/maven".length());
                             }
