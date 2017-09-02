@@ -1,19 +1,23 @@
 package de.johni0702.proxywitness;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ArtifactFetcher {
+    private final Set<String> httpUris;
     private final Map<String, String> checksums;
     private final Map<String, Optional<Artifact>> cache = new ConcurrentHashMap<>();
 
-    public ArtifactFetcher(Map<String, String> checksums) {
+    public ArtifactFetcher(Set<String> httpUris,
+                           Map<String, String> checksums) {
+        this.httpUris = httpUris;
         this.checksums = checksums;
     }
 
@@ -49,10 +53,12 @@ public class ArtifactFetcher {
         }
 
         URL url = new URL(uriString);
-        // Force https
-        url = new URL("https", url.getHost(), url.getPort(), url.getFile());
+        if (!httpUris.contains(uriString)) {
+            // Force https
+            url = new URL("https", url.getHost(), url.getPort(), url.getFile());
+        }
 
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod(head ? "HEAD" : "GET");
         connection.setInstanceFollowRedirects(true);
         connection.setUseCaches(false);

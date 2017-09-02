@@ -6,9 +6,11 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Proxy {
     private final ExecutorService clientHandlers = Executors.newCachedThreadPool();
@@ -38,8 +40,10 @@ public class Proxy {
 
         Map<String, String> checksums = Files.readAllLines(Paths.get(args[1])).stream().map(s -> s.split(" ", 2))
                 .collect(Collectors.toMap(s -> s[1], s -> s[0]));
+        Set<String> httpUris = Stream.of(System.getProperty("proxywitness.httpUris", "").split(","))
+                .collect(Collectors.toSet());
 
-        ArtifactFetcher fetcher = new ArtifactFetcher(checksums);
+        ArtifactFetcher fetcher = new ArtifactFetcher(httpUris, checksums);
         new Proxy(port, fetcher).run();
     }
 }
