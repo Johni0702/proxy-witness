@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -93,11 +94,12 @@ public class ArtifactFetcher {
                             return null;
                         } else if (!uriString.endsWith(".sha1")) {
                             String path = url.getPath();
-                            if (path.startsWith("/maven2")) { // Remove common prefix
-                                path = path.substring("/maven2".length());
-                            }
-                            if (path.startsWith("/maven")) { // Remove common prefix
-                                path = path.substring("/maven".length());
+                            // Remove common prefixes
+                            for (String prefix : Arrays.asList("/m2", "/maven2", "/maven")) {
+                                if (path.startsWith(prefix)) {
+                                    path = path.substring(prefix.length());
+                                    break;
+                                }
                             }
                             System.out.println(actualHash + " " + path);
                         }
