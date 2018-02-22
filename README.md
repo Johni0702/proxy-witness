@@ -35,6 +35,12 @@ It is also possible to not check the hash for specific paths by setting their ha
 Note that this might allow an attacker to circumvent the proxy by getting the build-system to download a different file from an URL with the same suffix.
 As such, this should be used with caution and will probably be changed to check the full URL instead of only a suffix in the future.
 
+If your build system properly caches files by itself, you can disable the in-memory cache of proxy-witness.
+Since there is no cache eviction, this may also be required for large projects to prevent proxy-witness from running OOM:
+```bash
+java -Dproxywitness.useCache=false -jar proxy-witness.jar ...
+```
+
 #### Configuring Gradle
 The simplest way to automatically convert all maven repos to http is to use an [init.gradle](https://docs.gradle.org/current/userguide/init_scripts.html) script:
 ```groovy

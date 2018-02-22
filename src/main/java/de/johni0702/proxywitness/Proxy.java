@@ -44,6 +44,7 @@ public class Proxy {
                 .collect(Collectors.toSet());
 
         ArtifactFetcher fetcher = new ArtifactFetcher(httpUris, checksums);
+        fetcher.setUseCache(Boolean.parseBoolean(System.getProperty("proxywitness.useCache", "true")));
         new Proxy(port, fetcher).run();
     }
 }

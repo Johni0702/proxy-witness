@@ -15,11 +15,16 @@ public class ArtifactFetcher {
     private final Set<String> httpUris;
     private final Map<String, String> checksums;
     private final Map<String, Optional<Artifact>> cache = new ConcurrentHashMap<>();
+    private boolean useCache = true;
 
     public ArtifactFetcher(Set<String> httpUris,
                            Map<String, String> checksums) {
         this.httpUris = httpUris;
         this.checksums = checksums;
+    }
+
+    public void setUseCache(boolean useCache) {
+        this.useCache = useCache;
     }
 
     public Artifact getArtifact(String uriString, boolean head) throws IOException {
@@ -28,7 +33,7 @@ public class ArtifactFetcher {
             return null;
         }
 
-        Optional<Artifact> cached = cache.get(uriString);
+        Optional<Artifact> cached = useCache ? cache.get(uriString) : null;
         if (cached != null) {
             if (cached.isPresent()) {
                 Artifact artifact = cached.get();
@@ -49,7 +54,7 @@ public class ArtifactFetcher {
         }
         if (expectedHash == null && !(uriString.endsWith(".sha1") || checksums.isEmpty())) {
             System.err.println("Tried to fetch unknown artifact: " + uriString);
-            cache.put(uriString, Optional.empty());
+            if (useCache) cache.put(uriString, Optional.empty());
             return null;
         }
 
@@ -71,7 +76,7 @@ public class ArtifactFetcher {
                     System.err.println("Got non 200 response for " + uriString + ", namely: "
                             + connection.getResponseCode() + " " + connection.getResponseMessage());
                 }
-                cache.put(uriString, Optional.empty());
+                if (useCache) cache.put(uriString, Optional.empty());
                 return null;
             } else {
                 Artifact artifact;
@@ -90,7 +95,7 @@ public class ArtifactFetcher {
                             System.err.println("Received unexpected hash for: " + uriString);
                             System.err.println("Expected: " + expectedHash);
                             System.err.println("But was:  " + actualHash);
-                            cache.put(uriString, Optional.empty());
+                            if (useCache) cache.put(uriString, Optional.empty());
                             return null;
                         } else if (!uriString.endsWith(".sha1")) {
                             String path = url.getPath();
@@ -108,7 +113,7 @@ public class ArtifactFetcher {
                 } else {
                     artifact = new Artifact(connection.getLastModified(), connection.getContentLength());
                 }
-                cache.put(uriString, Optional.of(artifact));
+                if (useCache) cache.put(uriString, Optional.of(artifact));
                 return artifact;
             }
         } finally {
