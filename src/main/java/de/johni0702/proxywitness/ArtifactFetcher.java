@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -13,12 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ArtifactFetcher {
     private final Set<String> httpUris;
-    private final Map<String, String> checksums;
+    private final Map<String, Set<String>> checksums;
     private final Map<String, Optional<Artifact>> cache = new ConcurrentHashMap<>();
     private boolean useCache = true;
 
     public ArtifactFetcher(Set<String> httpUris,
-                           Map<String, String> checksums) {
+                           Map<String, Set<String>> checksums) {
         this.httpUris = httpUris;
         this.checksums = checksums;
     }
@@ -46,13 +47,13 @@ public class ArtifactFetcher {
             }
         }
 
-        String expectedHash = null;
-        for (Map.Entry<String, String> entry : checksums.entrySet()) {
+        Set<String> expectedHash = Collections.emptySet();
+        for (Map.Entry<String, Set<String>> entry : checksums.entrySet()) {
             if (uriString.endsWith(entry.getKey())) {
                 expectedHash = entry.getValue();
             }
         }
-        if (expectedHash == null && !(uriString.endsWith(".sha1") || checksums.isEmpty())) {
+        if (expectedHash.isEmpty() && !(uriString.endsWith(".sha1") || checksums.isEmpty())) {
             System.err.println("Tried to fetch unknown artifact: " + uriString);
             if (useCache) cache.put(uriString, Optional.empty());
             return null;
@@ -90,8 +91,8 @@ public class ArtifactFetcher {
                     }
                     byte[] bytes = buffer.toByteArray();
                     String actualHash = Hash.sha256(bytes);
-                    if (!"*".equals(expectedHash) && !actualHash.equals(expectedHash)) {
-                        if (expectedHash != null) {
+                    if (!expectedHash.contains("*") && !expectedHash.contains(actualHash)) {
+                        if (!expectedHash.isEmpty()) {
                             System.err.println("Received unexpected hash for: " + uriString);
                             System.err.println("Expected: " + expectedHash);
                             System.err.println("But was:  " + actualHash);

@@ -38,8 +38,8 @@ public class Proxy {
 
         int port = Integer.parseInt(args[0]);
 
-        Map<String, String> checksums = Files.readAllLines(Paths.get(args[1])).stream().map(s -> s.split(" ", 2))
-                .collect(Collectors.toMap(s -> s[1], s -> s[0]));
+        Map<String, Set<String>> checksums = Files.readAllLines(Paths.get(args[1])).stream().map(s -> s.split(" ", 2))
+                .collect(Collectors.groupingBy(s -> s[1], Collectors.mapping(s -> s[0], Collectors.toSet())));
         Set<String> httpUris = Stream.of(System.getProperty("proxywitness.httpUris", "").split(","))
                 .collect(Collectors.toSet());
 
